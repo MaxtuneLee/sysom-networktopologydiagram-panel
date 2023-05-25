@@ -65,6 +65,8 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
           {(value: TooltipValue) => {
             if (value.model) {
               const { model } = value;
+              // 写了大量内联样式，因为使用 className 导致 dom 直接不渲染，未知原因
+              // 应该和 graphin 实现有关系，之后再研究
               return (
                 <div
                   style={{
