@@ -10,5 +10,5 @@ services:
     ports:
       - 3000:3000/tcp
     volumes:
-      - ./dist:/var/lib/grafana/plugins/sysom-networktopologydiagram-panel
+      - ./dist:/var/lib/grafana/plugins/maxtunelee-networktopologydiagram-panel
       - ./provisioning:/etc/grafana/provisioning
