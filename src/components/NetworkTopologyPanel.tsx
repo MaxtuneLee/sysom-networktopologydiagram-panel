@@ -52,18 +52,6 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
     }
   };
   /**
-   * canvas fit center
-   */
-  const canvasFitCenter = () => {
-    if (canvasRef.current) {
-      const graph = canvasRef.current.graph;
-      graph.fitCenter(true, {
-        duration: 500,
-        easing: 'easeCubic',
-      });
-    }
-  };
-  /**
    * canvas fit view
    */
   const canvasFitView = () => {
@@ -118,7 +106,6 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
         <div className="toolbar-item canvas-zoomin" onClick={zoomIn} title="放大"></div>
         <div className="toolbar-item canvas-zoomout" onClick={zoomOut} title="缩小"></div>
         <div className="toolbar-item canvas-fit" onClick={canvasFitView} title="自适应视图"></div>
-        <div className="toolbar-item canvas-center" onClick={canvasFitCenter} title="回中"></div>
       </div>
       <Graphin
         width={width}
@@ -126,7 +113,9 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
         data={g6data}
         theme={{ mode: 'dark' }}
         layout={{ type: 'dagre', preventOverlap: true, linkDistance: 200 }}
+        zoom={1}
         minZoom={0.6}
+        animate={true}
         fitCenter={true}
         ref={canvasRef}
       >

@@ -20,7 +20,7 @@ canvas {
   flex-wrap: wrap;
   z-index: 100;
   gap: 0.5rem;
-  width: calc(85px + 0.5rem);
+  width: calc(120px + 1rem);
 }
 .toolbar-item{
   box-sizing: content-box;
@@ -47,11 +47,6 @@ canvas {
 }
 .canvas-fit{
   background-image: url('../img/fitview.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-}
-.canvas-center{
-  background-image: url('../img/fitcenter.svg');
   background-repeat: no-repeat;
   background-position: center;
 }
