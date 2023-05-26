@@ -1,4 +1,5 @@
 export interface NetWorkTopologyDiagramOptions {
+  hightlightRelatedNode: boolean;
   numberDetailUnit: string;
   innerTitleUnit: string;
   jumpButtonTitle: string;

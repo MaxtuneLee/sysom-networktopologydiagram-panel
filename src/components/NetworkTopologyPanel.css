@@ -10,3 +10,48 @@ canvas {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+.canvas-toolbar{
+  box-sizing: border-box;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  z-index: 100;
+  gap: 0.5rem;
+  width: calc(85px + 0.5rem);
+}
+.toolbar-item{
+  box-sizing: content-box;
+  height: 20px;
+  width: 20px;
+  padding: 0.5rem;
+  background-color: rgba(204, 204, 220, 0.16);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.toolbar-item:hover{
+  background-color: rgba(204, 204, 220, 0.25);
+}
+.canvas-zoomin{
+  background-image: url('../img/zoomin.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.canvas-zoomout{
+  background-image: url('../img/zoomout.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.canvas-fit{
+  background-image: url('../img/fitview.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.canvas-center{
+  background-image: url('../img/fitcenter.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+}

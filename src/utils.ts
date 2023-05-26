@@ -70,7 +70,6 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
       });
     } else {
       frame.fields.map((field, index) => {
-        console.log(field.name.slice(0, 5));
         field.name.slice(0, 8) === 'detail__' ? nodeDetails.push(index) : null;
         field.name.slice(0, 5) === 'btn__' ? (nodeBtn = index) : null;
       });

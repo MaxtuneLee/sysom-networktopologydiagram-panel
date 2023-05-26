@@ -4,6 +4,12 @@ import { NetworkTopologyPanel } from './components/NetworkTopologyPanel';
 
 export const plugin = new PanelPlugin<NetWorkTopologyDiagramOptions>(NetworkTopologyPanel).setPanelOptions((builder) => {
   return builder
+    .addBooleanSwitch({
+      path: 'hightlightRelatedNode',
+      name: 'Highlight related node',
+      description: '是否高亮相关节点',
+      defaultValue: false,
+    })
     .addUnitPicker({
       path: 'numberDetailUnit',
       name: 'Number detail unit',
