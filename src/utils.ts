@@ -34,7 +34,7 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
 
     const getValueByFiledNameAndIdx = (fieldName: string, idx: number, default_value = "") => {
       let field = frame.fields.find((value: any) => {
-        return value.name === fieldName;
+        return value.name.trim() === fieldName;
       });
       if (field) {
         return (field.values as any).buffer[idx];
