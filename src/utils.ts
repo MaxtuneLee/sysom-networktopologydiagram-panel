@@ -2,6 +2,7 @@
 import { DataFrame } from '@grafana/data';
 import { NetWorkTopologyDiagramOptions } from 'types';
 
+
 /**
  * 转换 dataFrame 至 G6 格式
  * @param dataFrame grafana dataFrame
@@ -26,10 +27,20 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
     const nodeDetails: number[] = [];
     const edgeDetails: number[] = [];
     //储存 btn 对应的 index
-    let nodeBtn: number;
+    let nodeBtn: number[] = [];
 
     //将 edges 和 nodes 区分处理
     const edgesCheck = frame.fields.find((field) => field.name === 'source');
+
+    const getValueByFiledNameAndIdx = (fieldName: string, idx: number, default_value = "") => {
+      let field = frame.fields.find((value: any) => {
+        return value.name === fieldName;
+      });
+      if (field) {
+        return (field.values as any).buffer[idx];
+      }
+      return default_value;
+    }
 
     // 如果当前的 frame 是 edges
     if (edgesCheck) {
@@ -40,8 +51,8 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
 
       (frame.fields[0].values as any).buffer.map((value: any, index: number) => {
         const id = value;
-        const source = (frame.fields[1].values as any).buffer[index];
-        const target = (frame.fields[2].values as any).buffer[index];
+        const source = getValueByFiledNameAndIdx("source", index)
+        const target = getValueByFiledNameAndIdx("target", index)
         const detail = edgeDetails.map((item) => {
           return {
             key: frame.fields[item].name.split('__')[2],
@@ -54,31 +65,31 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
         edges.push(
           source !== target
             ? {
-                id: id,
-                source: source,
-                target: target,
-                detail: detail,
-                ...animation,
-              }
+              id: id,
+              source: source,
+              target: target,
+              detail: detail,
+              ...animation,
+            }
             : {
-                id: id,
-                source: source,
-                target: target,
-                detail: detail,
-              }
+              id: id,
+              source: source,
+              target: target,
+              detail: detail,
+            }
         );
       });
     } else {
       frame.fields.map((field, index) => {
         field.name.slice(0, 8) === 'detail__' ? nodeDetails.push(index) : null;
-        field.name.slice(0, 5) === 'btn__' ? (nodeBtn = index) : null;
+        field.name.slice(0, 5) === 'btn__' ? (nodeBtn.push(index)) : null;
       });
 
       (frame.fields[0].values as any).buffer.map((value: any, index: number) => {
-        const id = value;
-        const title = (frame.fields[1].values as any).buffer[index];
-        const inner_title = (frame.fields[2].values as any).buffer[index];
-        const subtitle = (frame.fields[3].values as any).buffer[index];
+        const id = getValueByFiledNameAndIdx("id", index);
+        const title = getValueByFiledNameAndIdx("title", index);
+        const inner_title = getValueByFiledNameAndIdx("inner_title", index);
+        const subtitle = getValueByFiledNameAndIdx("sub_title", index);
         const detail = nodeDetails.map((item) => {
           return {
             key: frame.fields[item].name.split('__')[2],
@@ -86,7 +97,12 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
             type: frame.fields[item].name.split('__')[1],
           };
         });
-        const button = (frame.fields[nodeBtn].values as any).buffer[index];
+        const button = nodeBtn.map((item) => {
+          return {
+            key: frame.fields[item].name.split('__')[1],
+            value: (frame.fields[item].values as any).buffer[index],
+          };
+        });
 
         nodes.push({
           id: id,

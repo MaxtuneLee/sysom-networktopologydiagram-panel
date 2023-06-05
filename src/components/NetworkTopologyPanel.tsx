@@ -7,7 +7,7 @@ import Graphin, { Behaviors, Components, TooltipValue } from '@antv/graphin';
 import { transformDataFrameToG6Format } from 'utils';
 import './NetworkTopologyPanel.css';
 
-interface Props extends PanelProps<NetWorkTopologyDiagramOptions> {}
+interface Props extends PanelProps<NetWorkTopologyDiagramOptions> { }
 
 const getStyles = () => {
   return {
@@ -76,21 +76,34 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
     if (canvasRef.current) {
       options.hightlightRelatedNode
         ? canvasRef.current.graph.addBehaviors(
-            {
-              type: 'activate-relations',
-              trigger: 'mouseenter',
-              activeState: 'active',
-              inactiveState: 'inactive',
-              resetSelected: false,
-            },
-            'default'
-          )
+          {
+            type: 'activate-relations',
+            trigger: 'mouseenter',
+            activeState: 'active',
+            inactiveState: 'inactive',
+            resetSelected: false,
+          },
+          'default'
+        )
         : canvasRef.current.graph.removeBehaviors('active-relations', 'default');
     }
   }, [options.hightlightRelatedNode]);
 
   // Convert grafana DataFrame to G6 format
   let g6data = transformDataFrameToG6Format(data.series, options);
+
+  // get dynamic template url
+  let getTemplateURL = (model: any) => {
+    let retURL = options.jumpButtonURL
+    // 只替换有匹配的模板变量
+    model.button.map((item: { key: string; value: string }) => {
+      const check = options.jumpButtonURL.search('$' + item.key)
+      if (check) {
+        retURL = retURL.replace('$' + item.key, item.value)
+      }
+    })
+    return retURL
+  }
 
   return (
     <div
@@ -184,7 +197,7 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
                   <LinkButton
                     style={{ marginTop: '12px' }}
                     variant="secondary"
-                    href={options.jumpButtonURL.split('$')[0] + model.button}
+                    href={getTemplateURL(model)}
                   >
                     {options.jumpButtonTitle}
                   </LinkButton>
