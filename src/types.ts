@@ -1,3 +1,5 @@
+import { IUserEdge, IUserNode } from "@antv/graphin";
+
 export interface NetWorkTopologyDiagramOptions {
   hightlightRelatedNode: boolean;
   numberDetailUnit: string;
@@ -11,7 +13,7 @@ export interface NetWorkTopologyDiagramOptions {
 /**
  * 节点格式
  */
-export interface Nodes {
+export interface Nodes extends IUserNode {
   /**
    * 节点唯一标识
    */
@@ -48,7 +50,7 @@ export interface Nodes {
   /**
    * 节点跳转配置
    */
-  btn: {
+  button: {
     /**
      * 跳转链接模版变量名
      * 如 pod_name 对应 `/grafana/d/Ua6tURa4k/new-dashboard?pod=${pod_name}` 中填充的模板字符串
@@ -64,7 +66,7 @@ export interface Nodes {
 /**
  * 边格式
  */
-export interface Edges {
+export interface Edges extends IUserEdge {
   /**
    * 边唯一标识
    */

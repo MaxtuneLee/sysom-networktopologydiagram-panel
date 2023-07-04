@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
+import { EdgeStyle } from '@antv/graphin';
+import { RestEdge } from '@antv/graphin/lib/typings/type';
 import { DataFrame } from '@grafana/data';
-import { NetWorkTopologyDiagramOptions } from 'types';
-
+import { Edges, NetWorkTopologyDiagramOptions, Nodes } from 'types';
 
 /**
  * 转换 dataFrame 至 G6 格式
@@ -10,122 +11,148 @@ import { NetWorkTopologyDiagramOptions } from 'types';
  * @returns 已转换的 G6 格式，包含 node 和 edge
  */
 export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: NetWorkTopologyDiagramOptions) => {
-  const nodes: any[] = [];
-  const edges: any[] = [];
-  const animation = {
-    style: {
-      animate: {
-        type: 'circle-running',
-        color: 'orange',
-        repeat: true,
-        duration: 6000,
-      },
-    },
+  const nodes: Nodes[] = [];
+  const edges: Edges[] = [];
+  const animation: EdgeStyle['animate'] = {
+    type: 'circle-running',
+    color: 'orange',
+    repeat: true,
+    duration: 6000,
   };
-  dataFrame.forEach((frame) => {
-    //储存 detail 对应的 index
-    const nodeDetails: number[] = [];
-    const edgeDetails: number[] = [];
-    //储存 btn 对应的 index
-    let nodeBtn: number[] = [];
+  const [splitNodes, splitEdges, splitDetails] = frameSplit(dataFrame);
+  console.log(splitNodes, splitEdges, splitDetails);
+  //储存 detail 对应的 index
+  const nodeDetails: number[] = [];
+  const edgeDetails: number[] = [];
+  //储存 btn 对应的 index
+  let nodeBtn: number[] = [];
 
-    //将 edges 和 nodes 区分处理
-    const edgesCheck = frame.fields.find((field) => field.name === 'source');
-
-    const getValueByFiledNameAndIdx = (fieldName: string, idx: number, default_value = "") => {
-      let field = frame.fields.find((value: any) => {
-        return value.name.trim() === fieldName;
-      });
-      if (field) {
-        return (field.values as any).buffer[idx];
-      }
-      return default_value;
-    }
-
-    // 如果当前的 frame 是 edges
-    if (edgesCheck) {
-      //找到 detail 对应的 index 并存起来
-      frame.fields.map((field, index) => {
-        field.name.slice(0, 8) === 'detail__' ? edgeDetails.push(index) : null;
-      });
-
-      (frame.fields[0].values as any).buffer.map((value: any, index: number) => {
-        const id = value;
-        const source = getValueByFiledNameAndIdx("source", index)
-        const target = getValueByFiledNameAndIdx("target", index)
-        const detail = edgeDetails.map((item) => {
-          return {
-            key: frame.fields[item].name.split('__')[2],
-            value: (frame.fields[item].values as any).buffer[index],
-            type: frame.fields[item].name.split('__')[1],
-          };
-        });
-
-        // 自环边不需要动画
-        edges.push(
-          source !== target
-            ? {
-              id: id,
-              source: source,
-              target: target,
-              detail: detail,
-              ...animation,
-            }
-            : {
-              id: id,
-              source: source,
-              target: target,
-              detail: detail,
-            }
-        );
-      });
-    } else {
-      frame.fields.map((field, index) => {
-        field.name.slice(0, 8) === 'detail__' ? nodeDetails.push(index) : null;
-        field.name.slice(0, 5) === 'btn__' ? (nodeBtn.push(index)) : null;
-      });
-
-      (frame.fields[0].values as any).buffer.map((value: any, index: number) => {
-        const id = getValueByFiledNameAndIdx("id", index);
-        const title = getValueByFiledNameAndIdx("title", index);
-        const inner_title = getValueByFiledNameAndIdx("inner_title", index);
-        const subtitle = getValueByFiledNameAndIdx("sub_title", index);
-        const detail = nodeDetails.map((item) => {
-          return {
-            key: frame.fields[item].name.split('__')[2],
-            value: (frame.fields[item].values as any).buffer[index],
-            type: frame.fields[item].name.split('__')[1],
-          };
-        });
-        const button = nodeBtn.map((item) => {
-          return {
-            key: frame.fields[item].name.split('__')[1],
-            value: (frame.fields[item].values as any).buffer[index],
-          };
-        });
-
-        nodes.push({
-          id: id,
-          title: title,
-          inner_title: inner_title,
-          subtitle: subtitle,
-          detail: detail,
-          button: button,
-          style: {
-            keyshape: {
-              size: 80,
-              fill: 'orange',
-              stroke: 'orange',
+  //边相关操作
+  //找到 detail 对应的 index 并存起来
+  splitEdges.fields.map((field, index) => {
+    field.name.slice(0, 8) === 'detail__' ? edgeDetails.push(index) : null;
+  });
+  (splitEdges.fields.find((field) => field.name === 'id') as any).values.buffer.map((value: any, index: number) => {
+    const id = value;
+    const source = getValueByFiledNameAndIdx(splitEdges, 'source', index);
+    const target = getValueByFiledNameAndIdx(splitEdges, 'target', index);
+    const detail = edgeDetails.map((item) => {
+      return {
+        key: splitEdges.fields[item].name.split('__')[2],
+        value: (splitEdges.fields[item].values as any).buffer[index],
+        type: splitEdges.fields[item].name.split('__')[1] as 'string' | 'number',
+      };
+    });
+    // 自环边不需要动画
+    edges.push(
+      source !== target
+        ? {
+            id: id,
+            source: source,
+            target: target,
+            detail: detail,
+            style: {
+              animate: animation,
             },
-            label: { value: `${title}\n${subtitle}` },
-            icon: {
-              value: `${inner_title} ${options.innerTitleUnit || ''}`,
-            },
-          },
-        });
-      });
-    }
+          }
+        : {
+            id: id,
+            source: source,
+            target: target,
+            detail: detail,
+          }
+    );
   });
 
+  //节点相关操作
+  splitNodes.fields.map((field, index) => {
+    field.name.slice(0, 8) === 'detail__' ? nodeDetails.push(index) : null;
+    field.name.slice(0, 5) === 'btn__' ? nodeBtn.push(index) : null;
+  });
+
+  (splitNodes.fields.find((field) => field.name === 'id') as any).values.buffer.map((value: any, index: number) => {
+    const id = getValueByFiledNameAndIdx(splitNodes, 'id', index);
+    const title = getValueByFiledNameAndIdx(splitNodes, 'title', index);
+    const inner_title = getValueByFiledNameAndIdx(splitNodes, 'inner_title', index);
+    const subtitle = getValueByFiledNameAndIdx(splitNodes, 'sub_title', index);
+    const detail = nodeDetails.map((item) => {
+      return {
+        key: splitNodes.fields[item].name.split('__')[2],
+        value: (splitNodes.fields[item].values as any).buffer[index],
+        type: splitNodes.fields[item].name.split('__')[1] as 'string' | 'number',
+      };
+    });
+    const button = nodeBtn.map((item) => {
+      return {
+        key: splitNodes.fields[item].name.split('__')[1],
+        value: (splitNodes.fields[item].values as any).buffer[index],
+      };
+    });
+    nodes.push({
+      id: id,
+      title: title,
+      inner_title: inner_title,
+      subtitle: subtitle,
+      detail: detail,
+      button: button,
+      style: {
+        keyshape: {
+          size: 80,
+          fill: 'orange',
+          stroke: 'orange',
+        },
+        label: { value: `${title}\n${subtitle}` },
+        icon: {
+          value: `${inner_title} ${options.innerTitleUnit || ''}`,
+        },
+      },
+    });
+  });
   return { edges, nodes };
+};
+
+/**
+ * 将dataframe分成nodes和edges以及details后返回
+ * @param dataFrame
+ * @returns node，edge，detail
+ */
+export const frameSplit = (dataFrame: DataFrame[]) => {
+  const initFrame: DataFrame = {
+    fields: [],
+    name: '',
+    length: 0,
+  };
+  let nodes: DataFrame = initFrame;
+  let edges: DataFrame = initFrame;
+  let details: DataFrame = initFrame;
+  dataFrame.forEach((frame) => {
+    //有souce字段的是edge
+    frame.fields.find((field) => field.name === 'source') ? (edges = frame) : null;
+    //有title字段的是node
+    frame.fields.find((field) => field.name === 'title') ? (nodes = frame) : null;
+    //含有detail字段并且不含有title字段的是detail
+    frame.fields.find((field) => field.name.slice(0, 8) === 'detail__') &&
+    frame.fields.find((field) => field.name === 'title') === undefined
+      ? (details = frame)
+      : null;
+  });
+  return [nodes, edges, details];
+};
+
+/**
+ * 通过字段名和索引获取值
+ * @param frame 表
+ * @param fieldName 字段名
+ * @param idx 索引
+ * @param default_value 默认值
+ * @returns 值
+ */
+export const getValueByFiledNameAndIdx = (frame: DataFrame, fieldName: string, idx: number, default_value = '') => {
+  let field = frame.fields.find((value: any) => {
+    return value.name.trim() === fieldName;
+  });
+  if (field) {
+    return (field.values as any).buffer[idx];
+  }
+  return default_value;
 };
