@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { EdgeStyle } from '@antv/graphin';
-import { RestEdge } from '@antv/graphin/lib/typings/type';
 import { DataFrame } from '@grafana/data';
 import { Edges, NetWorkTopologyDiagramOptions, Nodes } from 'types';
 
@@ -13,6 +12,13 @@ import { Edges, NetWorkTopologyDiagramOptions, Nodes } from 'types';
 export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: NetWorkTopologyDiagramOptions) => {
   const nodes: Nodes[] = [];
   const edges: Edges[] = [];
+  const details: Array<{ id: number; detail: Nodes['detail'] }> = [];
+  //储存 detail 对应的 index
+  const nodeDetails: number[] = [];
+  const edgeDetails: number[] = [];
+  const extraDetails: number[] = [];
+  //储存 btn 对应的 index
+  let nodeBtn: number[] = [];
   const animation: EdgeStyle['animate'] = {
     type: 'circle-running',
     color: 'orange',
@@ -20,12 +26,25 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
     duration: 6000,
   };
   const [splitNodes, splitEdges, splitDetails] = frameSplit(dataFrame);
+
   console.log(splitNodes, splitEdges, splitDetails);
-  //储存 detail 对应的 index
-  const nodeDetails: number[] = [];
-  const edgeDetails: number[] = [];
-  //储存 btn 对应的 index
-  let nodeBtn: number[] = [];
+  splitDetails.fields.map((field, index) => {
+    field.name.slice(0, 8) === 'detail__' ? extraDetails.push(index) : null;
+  });
+  (splitDetails.fields.find((field) => field.name === 'id') as any).values.buffer.map((value: any, index: number) => {
+    const id = value;
+    const detail = extraDetails.map((item) => {
+      return {
+        key: splitDetails.fields[item].name.split('__')[2],
+        value: (splitDetails.fields[item].values as any).buffer[index],
+        type: splitDetails.fields[item].name.split('__')[1] as 'string' | 'number',
+      };
+    });
+    details.push({
+      id: id,
+      detail: detail,
+    });
+  });
 
   //边相关操作
   //找到 detail 对应的 index 并存起来
@@ -82,18 +101,20 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
         type: splitNodes.fields[item].name.split('__')[1] as 'string' | 'number',
       };
     });
+    const otherDetail = details.find((item) => item.id === id);
     const button = nodeBtn.map((item) => {
       return {
         key: splitNodes.fields[item].name.split('__')[1],
         value: (splitNodes.fields[item].values as any).buffer[index],
       };
     });
+    console.log(otherDetail !== undefined ? [...detail, ...otherDetail.detail] : detail);
     nodes.push({
       id: id,
       title: title,
       inner_title: inner_title,
       subtitle: subtitle,
-      detail: detail,
+      detail: otherDetail !== undefined ? [...detail, ...otherDetail.detail] : detail,
       button: button,
       style: {
         keyshape: {
@@ -108,6 +129,7 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
       },
     });
   });
+
   return { edges, nodes };
 };
 

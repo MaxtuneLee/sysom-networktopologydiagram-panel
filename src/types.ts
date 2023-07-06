@@ -43,6 +43,10 @@ export interface Nodes extends IUserNode {
      */
     value: string;
     /**
+     * 详情值颜色
+     */
+    color?: string;
+    /**
      * 详情值类型
      */
     type: 'string' | 'number';
@@ -87,4 +91,26 @@ export interface Edges extends IUserEdge {
     value: string;
     type: 'string' | 'number';
   }>;
+}
+
+/**
+ * 属性颜色方案
+ */
+export interface ColorScheme {
+  /**
+   * 颜色方案id
+   */
+  id: string;
+  /**
+   * 颜色方案匹配的detail名称
+   */
+  match: string;
+  /**
+   * 颜色方案匹配的属性
+   */
+  key: string;
+  /**
+   * 匹配显示的颜色
+   */
+  color: string;
 }
