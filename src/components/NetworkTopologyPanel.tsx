@@ -86,15 +86,17 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
           'default'
         )
         : canvasRef.current.graph.removeBehaviors('active-relations', 'default');
+      //解决拖影问题
+      canvasRef.current.graph.get('canvas').set('localRefresh', false)
     }
   }, [options.hightlightRelatedNode]);
 
-  console.log('origin data: ',data.series)
+  // console.log('origin data: ', data.series)
 
   // Convert grafana DataFrame to G6 format
   let g6data = transformDataFrameToG6Format(data.series, options);
 
-  console.log('g6data: ',g6data)
+  // console.log('g6data: ', g6data)
 
   // get dynamic template url
   let getTemplateURL = (model: any) => {
@@ -129,7 +131,7 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
         height={height}
         data={g6data}
         theme={{ mode: 'dark' }}
-        layout={{ type: 'graphin-force', preventOverlap: true, linkDistance: 200 }}
+        layout={{ type: 'dagre', preventOverlap: true, linkDistance: 200 }}
         zoom={1}
         minZoom={0.6}
         animate={true}

@@ -108,9 +108,5 @@ export interface ColorScheme {
   /**
    * 颜色方案匹配的属性
    */
-  key: string;
-  /**
-   * 匹配显示的颜色
-   */
-  color: string;
+  [key: string]: string;
 }

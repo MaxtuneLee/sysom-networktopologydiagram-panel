@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { EdgeStyle } from '@antv/graphin';
 import { DataFrame } from '@grafana/data';
-import { Edges, NetWorkTopologyDiagramOptions, Nodes } from 'types';
+import { ColorScheme, Edges, NetWorkTopologyDiagramOptions, Nodes } from 'types';
 
 /**
  * 转换 dataFrame 至 G6 格式
@@ -17,6 +17,7 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
   const nodeDetails: number[] = [];
   const edgeDetails: number[] = [];
   const extraDetails: number[] = [];
+  const colorScheme: ColorScheme[] = [];
   //储存 btn 对应的 index
   let nodeBtn: number[] = [];
   const animation: EdgeStyle['animate'] = {
@@ -27,11 +28,12 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
   };
   const [splitNodes, splitEdges, splitDetails] = frameSplit(dataFrame);
 
-  console.log(splitNodes, splitEdges, splitDetails);
+  // console.log(splitNodes, splitEdges, splitDetails);
   splitDetails.fields.map((field, index) => {
     field.name.slice(0, 8) === 'detail__' ? extraDetails.push(index) : null;
+    field.name.slice(0, 5) === 'color' ? null : null;
   });
-  (splitDetails.fields.find((field) => field.name === 'id') as any).values.buffer.map((value: any, index: number) => {
+  (splitDetails.fields.find((field) => field.name === 'id') as any)?.values.buffer.map((value: any, index: number) => {
     const id = value;
     const detail = extraDetails.map((item) => {
       return {
@@ -122,7 +124,7 @@ export const transformDataFrameToG6Format = (dataFrame: DataFrame[], options: Ne
           fill: 'orange',
           stroke: 'orange',
         },
-        label: { value: `${title}\n${subtitle}` },
+        label: { value: `${splitString(30, title)}\n${subtitle}` },
         icon: {
           value: `${inner_title} ${options.innerTitleUnit || ''}`,
         },
@@ -178,3 +180,17 @@ export const getValueByFiledNameAndIdx = (frame: DataFrame, fieldName: string, i
   }
   return default_value;
 };
+
+/**
+ * 隔几个字符加一个换行（因为g6没提供调整label宽度的方法所以只能暴力点了）
+ * @param length 隔几个长度
+ * @param str 要切割的字符串
+ * @returns 换好了行的字符串
+ */
+function splitString(length: number, str: string) {
+  let reg = new RegExp('[^\n]{1,' + length + '}', 'g');
+  let res = str.match(reg);
+  return res?.join('\n');
+}
+
+export const setColorScheme = (field: DataFrame['fields']) => {};
