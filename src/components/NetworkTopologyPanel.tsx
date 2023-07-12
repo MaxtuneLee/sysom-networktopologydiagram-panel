@@ -74,6 +74,7 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
   // self define behavior to hightlight related node
   useEffect(() => {
     if (canvasRef.current) {
+      console.log(options.hightlightRelatedNode)
       options.hightlightRelatedNode
         ? canvasRef.current.graph.addBehaviors(
           {
@@ -85,11 +86,16 @@ export const NetworkTopologyPanel: React.FC<Props> = ({ options, data, width, he
           },
           'default'
         )
-        : canvasRef.current.graph.removeBehaviors('active-relations', 'default');
+        : canvasRef.current.graph.removeBehaviors('activate-relations', 'default');
+    }
+  }, [options.hightlightRelatedNode]);
+
+  useEffect(() => {
+    if (canvasRef.current) {
       //解决拖影问题
       canvasRef.current.graph.get('canvas').set('localRefresh', false)
     }
-  }, [options.hightlightRelatedNode]);
+  }, [])
 
   // console.log('origin data: ', data.series)
 
